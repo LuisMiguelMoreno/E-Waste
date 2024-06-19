@@ -80,9 +80,16 @@ if __name__ == "__main__":
         Vol_nodes_gen[i], Weight_nodes_gen[i] = calculate_volume_weight_node_vehicle(Prod_info, val)
 
 
+
+    ind = np.where(Coords_nodi_type[0,:,0])[0]
+    Coords_nodi_hub = Coords_nodi_type[0,ind,:]
+    ind = np.where(Coords_nodi_type[1,:,0])[0]
+    Coords_nodi_island = Coords_nodi_type[1,ind,:]
     
     Problem_data = {"Coords_nodi_type": Coords_nodi_type,
                     "Coords_nodi": Coords_nodi,
+                    "Coords_nodi_hub": Coords_nodi_hub,
+                    "Coords_nodi_island": Coords_nodi_island,
                     "dict_types_nodi": dict_types_nodi,
                     "Mat_Dist": Mat_Dist,
                     "Mat_Time_1": Mat_Time_1,
