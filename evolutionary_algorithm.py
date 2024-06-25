@@ -10,7 +10,7 @@ import random
 import pandas as pd
 import time
 
-from Fitness_function import *
+from Fitness_function import Fitness
 
 class EvolutiveClass:
     def __init__(self, 
@@ -19,7 +19,8 @@ class EvolutiveClass:
                  Num_Generaciones=10, 
                  Tam_Individuos=10, 
                  Prob_Padres=0.5, 
-                 Prob_Mutacion=0.02, 
+                 Prob_Mutacion=0.02,
+                 Prob_Hard_Mutation=0.01,
                  Prob_Cruce=0.5, 
                  seed=False, 
                  verbose = False):
@@ -28,10 +29,11 @@ class EvolutiveClass:
         self.Num_Individuos = Num_Individuos
         self.Num_Generaciones = Num_Generaciones
         self.Tam_Individuos = Tam_Individuos
-        self.Num_Max = self.Problem_data["Coords_nodi"].shape[0]
+        self.Num_Max = self.Problem_data["Coords_nodi_island"].shape[0]
         self.Prob_Padres = Prob_Padres
         self.Num_Padres = round(self.Num_Individuos * self.Prob_Padres)
         self.Prob_Mutacion = Prob_Mutacion
+        self.Prob_Hard_Mutation = Prob_Hard_Mutation
         self.Prob_Cruce = Prob_Cruce        
         if seed is not False:
             print(f"Seed is set to {seed}")
@@ -61,7 +63,8 @@ class EvolutiveClass:
         for i in range(Fil):
             Pob_Ini[i,:] = np.random.choice(range(Num_Max),Col,False)
 
-        return np.sort(Pob_Ini,axis=1)
+        # return np.sort(Pob_Ini,axis=1)
+        return Pob_Ini
 
     def Seleccion(self, poblacion_inicial, coste):
         # Minimizar
@@ -108,8 +111,8 @@ class EvolutiveClass:
         individuo = self.Reparacion(individuo)
 
         # A veces se hace una mutación dura, haciendo que el individuo sea nuevo
-        # if np.random.rand() < 0.3: # 30% de probabilidad
-        #     individuo = np.random.randint(0,Num_Max,size=individuo.shape)     
+        if np.random.rand() < self.Prob_Hard_Mutation: # 30% de probabilidad
+            individuo = np.random.choice(range(Num_Max),len(individuo),False)  
         return individuo
 
     def Mutacion_Gaussiana(self, individuo, Media):
@@ -149,7 +152,8 @@ class EvolutiveClass:
                 usados.add(nuevo_valor)
                 resultado.append(nuevo_valor)
 
-        return np.sort(np.array(resultado))
+        # return np.sort(np.array(resultado))
+        return np.array(resultado)
         
 
 
@@ -160,8 +164,8 @@ class EvolutiveClass:
         self.Coste_Pob = np.zeros((self.Num_Individuos))
 
         for indice, individuo in enumerate(self.Pob_Ini):
-
-            self.Coste_Pob[indice] = np.sum(individuo)
+            # print(indice)
+            self.Coste_Pob[indice] = Fitness(individuo, self.Problem_data)
 
         self.Pob_Act = np.copy(self.Pob_Ini)
 
@@ -174,7 +178,7 @@ class EvolutiveClass:
             for indice, individuo in enumerate(self.Pob_Act):
                 if indice < self.Num_Padres:
                     continue
-                self.Coste_Pob[indice] = np.sum(individuo)
+                self.Coste_Pob[indice] = Fitness(individuo, self.Problem_data)
 
             self.Fitness_Grafica.append(self.Coste_Pob[0])
             t_gen = time.process_time()

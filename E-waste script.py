@@ -19,6 +19,7 @@ from Problem_variables import calculate_total_volume_weight
 from Problem_variables import calculate_volume_weight_node_vehicle
 from Problem_variables import Max_hub_req
 from Problem_variables import Max_node_gen
+from Problem_variables import get_problem_variables
 
 
 
@@ -30,20 +31,22 @@ if __name__ == "__main__":
     """
     Read the problem data (nodes, routes, distances, times...).
     """
-    PATH = os.path.dirname(__file__)
-    DATA_PATH = os.path.join(PATH,"data")
+    # PATH = os.path.dirname(__file__)
+    # DATA_PATH = os.path.join(PATH,"data")
 
-    df_archi = pd.read_excel(os.path.join(DATA_PATH, "RAEE_ARCHI.xlsx"))
-    df_nodi = pd.read_excel(os.path.join(DATA_PATH, "raee_nodi.xlsx"))
-    df_archi_2 = pd.read_excel(os.path.join(DATA_PATH, "RAEE_ARCHI_DATA.xlsx"))
+    # df_nodi = pd.read_excel(os.path.join(DATA_PATH, "raee_nodi.xlsx"))
+    # df_archi = pd.read_excel(os.path.join(DATA_PATH, "RAEE_ARCHI_DATA.xlsx"))
 
-    npy_archi = df_archi.to_numpy()
-    npy_nodi = df_nodi.to_numpy(dtype=str)
+    # npy_nodi = df_nodi.to_numpy(dtype=str)
+    # num_nod = npy_nodi.shape[0]
+    # npy_archi = df_archi.to_numpy()
+    
+    npy_nodi = np.load("npy_nodi.npy")
     num_nod = npy_nodi.shape[0]
-    npy_archi_2 = df_archi_2.to_numpy()
+    npy_archi = np.load("npy_archi.npy",allow_pickle=True)
     
     Coords_nodi_type, Coords_nodi, dict_types_nodi = extract_node_info(npy_nodi)
-    Mat_Dist, Mat_Time_1, Mat_Time_2, Mat_Time_3 = extract_matrix(npy_archi_2, num_nod)
+    Mat_Dist, Mat_Time_1, Mat_Time_2, Mat_Time_3 = extract_matrix(npy_archi, num_nod)
     
     # Cleaning the data
     Nodes = [203,224]
@@ -64,6 +67,12 @@ if __name__ == "__main__":
     """
     Generate the hub requirements and the e-waste available for each node.
     """
+    
+    seed = 2024
+    
+    if seed is not False:
+        print(f"Seed is set to {seed}")
+        np.random.seed(seed)
 
     Prod_info = get_product_info()
     Hub_req = generate_hub_requirements(Prod_info, Max_hub_req, Coords_nodi_type)
@@ -86,11 +95,20 @@ if __name__ == "__main__":
     ind = np.where(Coords_nodi_type[1,:,0])[0]
     Coords_nodi_island = Coords_nodi_type[1,ind,:]
     
+    
+    """
+    WE DEFINE HERE THE INDEX OF THE HUB TO OPTIMIZE.
+    """
+    Hub_Index = 204 # 204-266
+    Hub_Index_rel = Hub_Index - 204 # Relative hub index
+    
     Problem_data = {"Coords_nodi_type": Coords_nodi_type,
                     "Coords_nodi": Coords_nodi,
                     "Coords_nodi_hub": Coords_nodi_hub,
                     "Coords_nodi_island": Coords_nodi_island,
                     "dict_types_nodi": dict_types_nodi,
+                    "Hub_Index" : Hub_Index,
+                    "Hub_Index_rel" : Hub_Index_rel,
                     "Mat_Dist": Mat_Dist,
                     "Mat_Time_1": Mat_Time_1,
                     "Mat_Time_2": Mat_Time_2,
@@ -104,17 +122,22 @@ if __name__ == "__main__":
                     }
 
     
-    create_map(Coords_nodi)
-    create_maps(Coords_nodi_type)
+    # create_map(Coords_nodi)
+    # create_maps(Coords_nodi_type)
+    
+    Problem_var = get_problem_variables()
+    
+    Num_Min_Veh = int(max(np.ceil(Vol_hub_req[Hub_Index_rel]/(Problem_var["V_r"]*0.9)),np.ceil(Weight_hub_req[Hub_Index_rel]/(Problem_var["L_r"]*0.9))))
     
     Ev1 = EvolutiveClass(Problem_data = Problem_data,
                          Num_Individuos = 100, 
-                         Num_Generaciones = 1000, 
-                         Tam_Individuos = 50, 
+                         Num_Generaciones = 200, 
+                         Tam_Individuos = Num_Min_Veh, 
                          Prob_Padres = 0.5, 
-                         Prob_Mutacion = 0.3, 
+                         Prob_Mutacion = 0.5,
+                         Prob_Hard_Mutation = 0.3,
                          Prob_Cruce = 0.5,
-                         seed=2024,
+                         seed=seed,
                          verbose=True)
     Ev1.ImprimirInformacion()
     Pob = Ev1.PoblacionInicial()

@@ -24,7 +24,8 @@ def get_problem_variables():
     eta_0       = 0.165     # L/km
     f_r         = 0.46      # €/(t*km)
     M_r         = 4387.68   # €/year
-    L_r         = 2         # t
+    L_r         = 2000      # kg
+    V_r         = 3.04      # m^3
     T           = 200       # days/year
     w_i         = [0,600]   # s
     v_ref       = 70        # km/h
@@ -33,8 +34,8 @@ def get_problem_variables():
     b_r         = 30.1      # adim
     a_p         = 98.6      # adim
     b_p         = 6.5       # adim
-    Z           = 0         # Falta?¿?¿
-    P_h         = 0         # Falta?¿?¿
+    Z           = 87.06     # Buildings/km
+    P_h         = 3500      # €/m2
     Policy      = "dist"    # Can be "dist" or "time"
     
     
@@ -52,6 +53,7 @@ def get_problem_variables():
                  "f_r" : f_r,
                  "M_r" : M_r,
                  "L_r" : L_r,
+                 "V_r" : V_r,
                  "T" : T,
                  "w_i" : w_i,
                  "v_ref" : v_ref,
