@@ -6,11 +6,13 @@
 import pandas as pd
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 from Aux_func import extract_node_info
 from Aux_func import extract_matrix
 from Aux_func import create_map 
 from Aux_func import create_maps 
+from Aux_func import create_map_solution
 
 from Problem_variables import get_product_info
 from Problem_variables import generate_hub_requirements
@@ -125,23 +127,36 @@ if __name__ == "__main__":
     # create_map(Coords_nodi)
     # create_maps(Coords_nodi_type)
     
+    # create_map(Coords_nodi_type)
+
+    
     Problem_var = get_problem_variables()
     
     Num_Min_Veh = int(max(np.ceil(Vol_hub_req[Hub_Index_rel]/(Problem_var["V_r"]*0.9)),np.ceil(Weight_hub_req[Hub_Index_rel]/(Problem_var["L_r"]*0.9))))
+    Tam_Individuos = Num_Min_Veh
     
     Ev1 = EvolutiveClass(Problem_data = Problem_data,
-                         Num_Individuos = 100, 
-                         Num_Generaciones = 200, 
-                         Tam_Individuos = Num_Min_Veh, 
-                         Prob_Padres = 0.5, 
-                         Prob_Mutacion = 0.5,
-                         Prob_Hard_Mutation = 0.3,
-                         Prob_Cruce = 0.5,
-                         seed=seed,
-                         verbose=True)
+                          Num_Individuos = 100, 
+                          Num_Generaciones = 200, 
+                          Tam_Individuos = Tam_Individuos, 
+                          Prob_Padres = 0.5, 
+                          Prob_Mutacion = 0.5,
+                          Prob_Hard_Mutation = 0.3,
+                          Prob_Cruce = 0.5,
+                          seed=seed,
+                          verbose=True)
     Ev1.ImprimirInformacion()
     Pob = Ev1.PoblacionInicial()
     Ev1.InicioAlgoritmo()
     a = Ev1.Fitness_Grafica
     Pob = Ev1.Pob_Act
     print(Ev1.Mejor_Individuo)
+    Ruta = Ev1.Ruta
+    print(Ev1.Ruta)
+    create_map_solution(Coords_nodi_type, Ev1.Ruta, f"{Hub_Index}_{Tam_Individuos}")
+    
+    
+    plt.figure()
+    plt.plot(Ev1.Fitness_Grafica)
+    plt.xlabel("Generations")
+    plt.ylabel("Cost (€)")
