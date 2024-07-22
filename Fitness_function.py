@@ -105,7 +105,8 @@ def calculate_c5(x_ijr,
     return c5
 
 def Fitness(individuo,
-            problem_data):
+            problem_data,
+            flag_route=False):
 
     # print(np.sum(problem_data["Node_gen_total"],axis=0))
     problem_data_copy = deepcopy(problem_data)
@@ -142,18 +143,19 @@ def Fitness(individuo,
     t_ij[t_ij == 0] = 1e20
     
     
-    t_ij_1 = np.array(num_vehicles*[problem_data_copy["Mat_Time_1"]])
-    t_ij_1[t_ij_1 == 0] = 1e20
-    t_ij_2 = np.array(num_vehicles*[problem_data_copy["Mat_Time_2"]])
-    t_ij_2[t_ij_2 == 0] = 1e20
-    t_ij_3 = np.array(num_vehicles*[problem_data_copy["Mat_Time_3"]])
-    t_ij_3[t_ij_3 == 0] = 1e20
+    # t_ij_1 = np.array(num_vehicles*[problem_data_copy["Mat_Time_1"]])
+    # t_ij_1[t_ij_1 == 0] = 1e20
+    # t_ij_2 = np.array(num_vehicles*[problem_data_copy["Mat_Time_2"]])
+    # t_ij_2[t_ij_2 == 0] = 1e20
+    # t_ij_3 = np.array(num_vehicles*[problem_data_copy["Mat_Time_3"]])
+    # t_ij_3[t_ij_3 == 0] = 1e20
     ewaste_collected = np.zeros((num_vehicles,problem_data_copy["Hub_req"].shape[1],problem_data_copy["Hub_req"].shape[2]),dtype=int)
     # nodes_visited = np.zeros((num_nod),dtype=int)
     nodes_visited = np.zeros((204),dtype=int)
     vehicle_charge_vol = np.zeros((num_vehicles), dtype=float)
     vehicle_charge_weight = np.zeros((num_vehicles), dtype=float)
     time_wasted_vehicle = np.zeros((num_vehicles), dtype=float)
+    flag_finished = np.zeros((num_vehicles), dtype=int)
     Routes = {}
     for i, val in enumerate(individuo):
         Routes[i] = [val]
@@ -162,22 +164,30 @@ def Fitness(individuo,
 
     # This is used to fill the first route between the hib and the first node
     # for each vehicle in the x_ijr matrix
-    index = (np.arange(len(individuo)), problem_data_copy["Hub_Index"] * np.ones(len(individuo), dtype=int), individuo)
+    index = (np.arange(len(individuo)), problem_data_copy["Hub_Index"] * np.ones(len(individuo), dtype=int), np.array(individuo,dtype=int))
+    # print(index)
     x_ijr[index] = 1
     
     timeout = 1000
     while np.any((np.sum(ewaste_collected,axis=0) - problem_data_copy["Hub_req"][problem_data_copy["Hub_Index_rel"]])<0):
         # time_wasted_vehicle = np.sum(np.sum(x_ijr*t_ij,axis=-1),axis=-1)
         timeout -= 1
+        if np.sum(flag_finished) == num_vehicles:
+            # Means that all the vehicles are "full", but we can use more space
+            ind_minor = np.argsort(vehicle_charge_vol)[0]
+            flag_finished[ind_minor] = 0
+            Routes[ind_minor].pop()
+            
         if timeout == 0:
+            # pass
             return np.inf
         for ind_veh, veh in enumerate(individuo):
             # Charge phase
             origin_node = Routes[ind_veh][-1]
             # print(origin_node)
-            if origin_node == 247:
-                print("debug")
-                pass
+            # if origin_node == 247:
+            #     print("debug")
+            #     pass
             if origin_node == problem_data_copy["Hub_Index"]:
                 continue
             nodes_visited[origin_node] = 1
@@ -213,6 +223,7 @@ def Fitness(individuo,
                             if np.sum(problem_data_copy["Node_gen_total"][origin_node]) != 0: # The vehicle is full-loaded but the node is not still empty
                                 nodes_visited[origin_node] = 2
                                 prox_node = problem_data_copy["Hub_Index"]
+                                flag_finished[ind_veh] = 1
                                 x_ijr[ind_veh,origin_node,prox_node] = 1
                                 # Actualization of the weight in each route
                                 q_ir[ind_veh,origin_node,prox_node] = vehicle_charge_weight[ind_veh]
@@ -263,10 +274,12 @@ def Fitness(individuo,
     c4 = calculate_c4(x_ijr,
                       D_ij,
                       q_ir)
-    # c5 = calculate_c5(x_ijr,
-    #                   t_ij,
-    #                   D_ij)
+    c5 = calculate_c5(x_ijr,
+                      t_ij,
+                      D_ij)
     # coste = np.sum(individuo)
     # return coste
-    print(c1,c2,c3,c4)
+    # print(c1,c2,c3,c4)
+    if flag_route:
+        return (c1+c2+c3+c4), Routes
     return c1+c2+c3+c4
