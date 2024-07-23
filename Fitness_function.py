@@ -80,7 +80,8 @@ def calculate_c4(x_ijr,
     return c4
 
 # c5 is the cost relative to the acoustic pollution
-def calculate_c5(x_ijr,
+def calculate_c5(R,
+                 x_ijr,
                  t_ij,
                  D_ij):
     
@@ -92,6 +93,7 @@ def calculate_c5(x_ijr,
     v_ref = variables["v_ref"]
     Z = variables["Z"]
     P_h = variables["P_h"]
+    A = variables["A"]
 
     Y = np.sum(x_ijr*D_ij)
     v = x_ijr * (D_ij/(t_ij/3600))
@@ -101,7 +103,9 @@ def calculate_c5(x_ijr,
     L_wr = a_r + b_r * np.log10(v_mean/v_ref)
     L_wp = a_p + b_p * ((v_mean-v_ref)/v_ref)
     
-    c5 = Z * Y * (L_wr + L_wp - 55) * 0.005 * P_h
+    # c5 = Z * Y * (L_wr + L_wp - 55) * 0.005 * P_h
+    
+    c5 = (Z * Y / 365) * (R / A) * ( 10 * np.log10((10**(L_wr/10)) + (10**(L_wp/10))) - 55) * 0.005 * P_h
     return c5
 
 def Fitness(individuo,
@@ -274,12 +278,19 @@ def Fitness(individuo,
     c4 = calculate_c4(x_ijr,
                       D_ij,
                       q_ir)
-    c5 = calculate_c5(x_ijr,
+    c5 = calculate_c5(len(individuo),
+                      x_ijr,
                       t_ij,
                       D_ij)
+    # print(c5)
     # coste = np.sum(individuo)
     # return coste
-    # print(c1,c2,c3,c4)
+    # print(c1,c2,c3,c4,c5)
     if flag_route:
-        return (c1+c2+c3+c4), Routes
-    return c1+c2+c3+c4
+        # print(f"C1 : {c1}")
+        # print(f"C2 : {c2}")
+        # print(f"C3 : {c3}")
+        # print(f"C4 : {c4}")
+        # print(f"C5 : {c5}")
+        return (c1+c2+c3+c4+c5), Routes, np.array([c1,c2,c3,c4,c5])
+    return c1+c2+c3+c4+c5
