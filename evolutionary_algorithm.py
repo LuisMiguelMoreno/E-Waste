@@ -185,7 +185,7 @@ class EvolutiveClass:
             if self.verbose:
                 print(f"Tiempo en generación {generacion}: {t_gen-t_inicio}s. Coste = {self.Coste_Pob[0]:.2f}€")
         self.Mejor_Individuo = self.Pob_Act[0,:]
-        self.Fitness_Mejor, self.Ruta = Fitness(self.Mejor_Individuo, self.Problem_data, flag_route = True)
+        self.Fitness_Mejor, self.Ruta, self.Costs = Fitness(self.Mejor_Individuo, self.Problem_data, flag_route = True)
 
 if __name__ == "__main__":
     print("Evolutionary algorithm")

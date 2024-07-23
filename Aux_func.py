@@ -188,11 +188,11 @@ def create_map_solution(tensor, routes, name):
     
 
     # Save the map to an HTML file
-    map_path = f"map_solution_hub_{name}_vehicles.html"
-    base_map.save(map_path)
+    # map_path = f"map_solution_hub_{name}_vehicles.html"
+    # base_map.save(map_path)
     
     # Open the map in the default web browser
-    webbrowser.open(map_path)
+    # webbrowser.open(map_path)
 
 
 
@@ -238,10 +238,15 @@ def create_map_solution(tensor, routes, name):
                 
     # Save the map to an HTML file
     map_path = f"map_solution_2_hub_{name}_vehicles.html"
-    base_map_2.save(map_path)
+    # base_map_2.save(map_path)
+
+    base_map_2.save(name)
+
     
     # Open the map in the default web browser
-    webbrowser.open(map_path)
+    # webbrowser.open(map_path)
+    # webbrowser.open(name)
+
     
 
 

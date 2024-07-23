@@ -34,8 +34,11 @@ def get_problem_variables():
     b_r         = 30.1      # adim
     a_p         = 98.6      # adim
     b_p         = 6.5       # adim
-    Z           = 87.06     # Buildings/km
-    P_h         = 3500      # €/m2
+    Z           = 49.19     # Buildings/km # Lazio
+    P_h         = 2493      # €/m2 # Lazio
+    # Z           = 52.56     # Buildings/km # Rome
+    # P_h         = 3395      # €/m2 # Rome
+    A           = 20000     # vehicles
     Policy      = "dist"    # Can be "dist" or "time"
     
     
@@ -64,6 +67,7 @@ def get_problem_variables():
                  "b_p" : b_p,
                  "Z" : Z,
                  "P_h" : P_h,
+                 "A" : A,
                  "Policy" : Policy
                  }
 
@@ -96,10 +100,18 @@ def get_product_info():
                                  [15,0.7,7,15*0.7*7*1e-6,0.2,1],
                                  [15,48,45,15*48*45*1e-6,2.28,1],
                                  [19,0.8,28,19*0.8*28*1e-6,0.6,1]])
+    Prod_info_type_5 = np.array([[2.5,2.5,35,2.5*2.5*35*1e-6,0.05,1],
+                                 [6,6,11.5,6*6*11.5*1e-6,0.07,1],
+                                 [14,3.5,3.5,14*3.5*3.5*1e-6,0.04,1]])
+    # Prod_info_type_5 = np.array([[2.5,2.5,35,2.5*2.5*35*1e-6,0.05,1],
+    #                              [6,6,11.5,6*6*11.5*1e-6,0.07,1],
+    #                              [14,3.5,3.5,14*3.5*3.5*1e-6,0.04,1],
+    #                              [46,61,85,46*61*85*1e-6,6,3]])
     Prod_info = {"Type 1":Prod_info_type_1,
                  "Type 2":Prod_info_type_2,
                  "Type 3":Prod_info_type_3,
-                 "Type 4":Prod_info_type_4}
+                 "Type 4":Prod_info_type_4,
+                 "Type 5":Prod_info_type_5}
     
     return Prod_info
 
@@ -109,8 +121,9 @@ Hub requirements generation. The maximum hub requirements for each type is:
     Type 2: 20 items of each type.
     Type 3: 40 items of each type.
     Type 4: 60 items of each type.
+    Type 5: 60 items of each type.
 """
-Max_hub_req = [10,20,40,60]
+Max_hub_req = [10,20,40,60,60]
 
 def generate_hub_requirements(Prod_info, Max_hub_req, Coords_nodi_type):
     
@@ -122,7 +135,8 @@ def generate_hub_requirements(Prod_info, Max_hub_req, Coords_nodi_type):
     Max_prod = np.max([Prod_info["Type 1"].shape[0],
                        Prod_info["Type 2"].shape[0],
                        Prod_info["Type 3"].shape[0],
-                       Prod_info["Type 4"].shape[0]])
+                       Prod_info["Type 4"].shape[0],
+                       Prod_info["Type 5"].shape[0]])
 
 
     Hub_req = np.zeros((num_hub,len(Max_hub_req),Max_prod), dtype=int)
@@ -131,11 +145,13 @@ def generate_hub_requirements(Prod_info, Max_hub_req, Coords_nodi_type):
         Hub_req_type_2 = np.random.randint(0,Max_hub_req[1],Prod_info["Type 2"].shape[0],int)
         Hub_req_type_3 = np.random.randint(0,Max_hub_req[2],Prod_info["Type 3"].shape[0],int)
         Hub_req_type_4 = np.random.randint(0,Max_hub_req[3],Prod_info["Type 4"].shape[0],int)
+        Hub_req_type_5 = np.random.randint(0,Max_hub_req[4],Prod_info["Type 5"].shape[0],int)
         
         Hub_req[i,0,:Hub_req_type_1.shape[0]] = Hub_req_type_1
         Hub_req[i,1,:Hub_req_type_2.shape[0]] = Hub_req_type_2
         Hub_req[i,2,:Hub_req_type_3.shape[0]] = Hub_req_type_3
         Hub_req[i,3,:Hub_req_type_4.shape[0]] = Hub_req_type_4
+        Hub_req[i,4,:Hub_req_type_5.shape[0]] = Hub_req_type_5
 
     return Hub_req
 
@@ -145,8 +161,9 @@ Node maximum e-waste generation. The maxmum generation of e-waste for each node 
     Type 2: 5 items of each type.
     Type 3: 8 items of each type.
     Type 4: 8 items of each type.
+    Type 5: 8 items of each type.
 """
-Max_node_gen = [3,5,8,8]
+Max_node_gen = [3,5,8,8,10]
 
 def generate_ie_ewaste(Prod_info, Max_node_gen, Coords_nodi_type):
     """
@@ -157,7 +174,7 @@ def generate_ie_ewaste(Prod_info, Max_node_gen, Coords_nodi_type):
     ind_nodes = np.array([],dtype=int)
     dict_ind_type = {}
     for i, val in enumerate(Coords_nodi_type):
-        if i == 0 or i == 5: # Skip hub nodes and type 5
+        if i == 0: # Skip hub nodes and type 5
             continue
     
         aux = np.where(val[:,0])[0]
@@ -168,7 +185,8 @@ def generate_ie_ewaste(Prod_info, Max_node_gen, Coords_nodi_type):
     Max_prod = np.max([Prod_info["Type 1"].shape[0],
                        Prod_info["Type 2"].shape[0],
                        Prod_info["Type 3"].shape[0],
-                       Prod_info["Type 4"].shape[0]])
+                       Prod_info["Type 4"].shape[0],
+                       Prod_info["Type 5"].shape[0]])
     
     Node_gen_total = np.zeros((len(ind_nodes),len(Max_node_gen),Max_prod), dtype=int)
     for i, val in enumerate(ind_nodes):
@@ -176,6 +194,7 @@ def generate_ie_ewaste(Prod_info, Max_node_gen, Coords_nodi_type):
         Node_gen_type_2 = np.random.randint(0,Max_node_gen[1],Prod_info["Type 2"].shape[0],int)
         Node_gen_type_3 = np.random.randint(0,Max_node_gen[2],Prod_info["Type 3"].shape[0],int)
         Node_gen_type_4 = np.random.randint(0,Max_node_gen[3],Prod_info["Type 4"].shape[0],int)
+        Node_gen_type_5 = np.random.randint(0,Max_node_gen[4],Prod_info["Type 5"].shape[0],int)
         
         # Node_gen = {"Type 1":Node_gen_type_1,
         #             "Type 2":Node_gen_type_2,
@@ -189,6 +208,8 @@ def generate_ie_ewaste(Prod_info, Max_node_gen, Coords_nodi_type):
             Node_gen_total[i,2,:Node_gen_type_3.shape[0]] = Node_gen_type_3
         if val in dict_ind_type[4]:
             Node_gen_total[i,3,:Node_gen_type_4.shape[0]] = Node_gen_type_4
+        if val in dict_ind_type[5]:
+            Node_gen_total[i,4,:Node_gen_type_5.shape[0]] = Node_gen_type_5
     
     return Node_gen_total
 
