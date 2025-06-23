@@ -34,10 +34,10 @@ def get_problem_variables():
     b_r         = 30.1      # adim
     a_p         = 98.6      # adim
     b_p         = 6.5       # adim
-    Z           = 49.19     # Buildings/km # Lazio
-    P_h         = 2493      # €/m2 # Lazio
-    # Z           = 52.56     # Buildings/km # Rome
-    # P_h         = 3395      # €/m2 # Rome
+    # Z           = 49.19     # Buildings/km # Lazio
+    # P_h         = 2493      # €/m2 # Lazio
+    Z           = 52.56     # Buildings/km # Rome
+    P_h         = 3395      # €/m2 # Rome
     A           = 20000     # vehicles
     Policy      = "dist"    # Can be "dist" or "time"
     
@@ -124,6 +124,7 @@ Hub requirements generation. The maximum hub requirements for each type is:
     Type 5: 60 items of each type.
 """
 Max_hub_req = [10,20,40,60,60]
+# Max_hub_req = [50,100,200,300,300]
 
 def generate_hub_requirements(Prod_info, Max_hub_req, Coords_nodi_type):
     
